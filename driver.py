@@ -2,8 +2,9 @@ import itertools
 import argparse
 import collections
 
-ITERATIONS = 10000
+ITERATIONS = 100
 DEADLOCK = int(1e6)
+
 
 def win(me, other):
     if me == other:
@@ -41,7 +42,12 @@ def play(player1, player2):
 
 def summarize(outcomes):
     return collections.Counter(outcomes)
-    
+
+
+def decide(outcomes):
+    c = collections.Counter(outcomes)
+    return c.get('win', 0) > c.get('loss', 0)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -61,10 +67,24 @@ def main():
     if len(players) < 2:
         parser.error("Not enough players (need more than one).")
 
+
+
+    win_counter = collections.Counter()
     for (p1_class, p1_name), (p2_class, p2_name) in itertools.combinations(players, 2):
         p1, p2 = p1_class(), p2_class()
 
-        print p1_name, p2_name, summarize(play(p1, p2))
+        outcomes = play(p1, p2)
+
+        if decide(outcomes):
+            win_counter.update([(p1_class, p1_name)])
+        else:
+            win_counter.update([(p2_class, p2_name)])
+
+    print 'wins player'
+
+    for (k, name), v in win_counter.most_common(100):
+        print '{:4d} {}'.format(v, name)
+
 
 if __name__ == '__main__':
     main()
